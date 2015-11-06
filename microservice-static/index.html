@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>The change you wanted was rejected (422)</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta charset="UTF-8">
+  <script src="js/jquery-1.11.3.min.js"></script>
+  <script src="js/jquery-migrate-1.2.1.min.js"></script>
+  <link rel="stylesheet" href="css/bootstrap.min.css">
+  <link rel="stylesheet" href="css/bootstrap-theme.min.css">
+  <script src="js/bootstrap.min.js"></script>
+  <script>
+    var ready = function() {
+      contact = {
+        set: function () {		  
+          $.post("http://192.168.1.33:4000/v1/contacts", {
+		    contact: {
+			  email: $('#set-email').val(),
+              fone: $('#set-fone').val(),
+               name: $('#set-name').val()
+			}            
+          }, function (data) {		    
+            console.dir('sucesso create');
+          });		  
+		  this.clear_fields_set();
+        },
+
+        get: function () {
+          $.get("http://192.168.1.33:4000/v1/contacts", function (data) {
+            make_grid.all(JSON.parse(JSON.stringify(data)));
+          });
+        },
+		
+		edit: function (contact_id) {
+		  this.clear_fields_get();
+          $.get("http://192.168.1.33:4000/v1/contacts/" + contact_id, function (data) {		    
+		    var json = JSON.parse(JSON.stringify(data));            
+            $('.get-contact-head').append(json['data'].name);
+			$('#get-email').val(json['data'].email);
+			$('#get-name').val(json['data'].name);
+			$('#get-fone').val(json['data'].fone);
+			$('#get-id').val(json['data'].id);				
+          });
+        },
+		
+		update: function (contact_id) {	
+          $.ajax({
+            type: "POST",
+            url: "http://192.168.1.33:4000/v1/contacts/" + contact_id,
+            data: { _method: 'PUT', contact: {
+			    email: $('#get-email').val(),
+                fone: $('#get-fone').val(),
+                name: $('#get-name').val()
+			  }  
+    		},
+            dataType: 'json',
+            success: function(msg) {
+              console.dir('sucesso update');			
+            }
+          });		          
+		  this.clear_fields_get();
+        },
+		
+		delete: function (contact_id) {
+          $.ajax({
+            type: "POST",
+            url: "http://192.168.1.33:4000/v1/contacts/" + contact_id,
+            data: { _method: 'DELETE', contact: {
+			    email: $('#get-email').val(),
+                fone: $('#get-fone').val(),
+                name: $('#get-name').val()
+			  }  
+    		},
+            dataType: 'json',
+            success: function(msg) {
+              console.dir('sucesso delete' + contact_id);			
+            }
+          });		          		  
+        },
+		
+		clear_fields_set: function(){
+		  $('#set-email').val("");
+		  $('#set-fone').val("");
+		  $('#set-name').val("");
+		  $('#set-id').val("");
+		},
+		
+		clear_fields_get: function(){
+		  $('#get-email').val("");
+		  $('#get-fone').val("");
+		  $('#get-name').val("");
+		  $('#get-id').val("");
+		  $('.get-contact-head').html("");		  
+		}
+      }, 
+
+	  make_grid = {
+	    all: function(json){
+		  $('.contacts').html(""); 
+		  $.each(json.data, function( i, item ) {
+		    registro = "<tr>";
+			registro += "<td>" + item.id + "</td>";
+			registro += "<td>" + item.name + "</td>";
+			registro += "<td>" + item.email + "</td>";			
+			registro += "<td>" + item.fone + "</td>";		
+			registro += '<td><a href="#" id="editar" name="editar" data-id="' + item.id + '">Editar</a></td>';		
+			registro += '<td><a href="#" id="delete" name="delete" data-id="' + item.id + '">Deletar</a></td>';		
+			
+			registro += "</tr>";
+		    $('.contacts').append(registro);         
+          });		  
+		}	    
+	  }	
+
+	  $(document).on('click', '#get_contact', function (event) {	        
+        event.preventDefault();
+        contact.get();
+      });
+	  	  
+	  $(document).on('click', '#editar', function (event) {	  
+	    var id = $(this).attr('data-id');
+		contact.edit(id);
+        $("#contact-get-modal").modal('show');
+      });
+	  
+	  $(document).on('click', '#delete', function (event) {	  
+	    var id = $(this).attr('data-id');    
+        contact.delete(id);
+		contact.get();
+      });
+
+	  $(document).on('click', '#contact-new', function (event) {	        
+        $("#contact-set-modal").modal('show');
+      });
+	  
+	  
+	  $(document).on('submit', '#set_contact_form', function (event) {	                
+	    event.preventDefault();
+        contact.set();		
+		$("#contact-set-modal").modal('hide');		
+		contact.get();
+      });
+	  
+	  $(document).on('submit', '#get_contact_form', function (event) {	                
+	    event.preventDefault();
+        contact.update($('#get-id').val());		
+		$("#contact-get-modal").modal('hide');		
+		contact.get();
+      });
+	        
+    }
+    $(document).ready(ready);
+    $(document).on("page:load", ready);
+  </script>
+</head>
+
+<body>
+  <div class="row">
+    <div class="row">
+      <div class="text-center">
+        <h1>MicroService Crud Contatos</h1>
+      </div>
+    </div>
+    <div class="row">
+		<div class="col-md-12">                  
+            <div>              
+              <div class="row">
+                <div class="col-md-offset-1 col-md-10">
+                  <h1>Contatos</h1>				  
+			      <input type="submit" value="Buscar" id="get_contact" class="btn btn-default"/>
+			      <input type="button" value="Novo" id="contact-new" class="btn btn-default"/><br><br>
+			      <table class="table table-hover">
+                    <thead>	
+				      <th>ID</th>
+				      <th>Usuário</th>
+				      <th>Email</th>
+				      <th>Telefone</th>	
+                      <th colspan="2">Ações</th>						
+			        </thead>					
+			        <tbody class="contacts"></tbody>					
+			      </table>                    
+                </div>
+              </div>              
+            </div>
+            <div id="contact-set-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel">			
+			  <div class="modal-dialog">
+                <div class="modal-content">
+                  <div class="modal-header">      
+                    <h4>Novo</h4>				  				  
+                  </div>
+				  <form method="post" id="set_contact_form">
+                    <div class="modal-body">                    
+                      <div class="modal-body">                            
+                        <div class="form-group">
+			  		      <label class="control-label">Nome</label>
+                          <input type="text" id="set-name" name="set-name" required class="form-control"/><br>                                                   
+                        </div>
+                        <div class="form-group">
+                          <label class="control-label">Email</label>
+                          <input type="text" id="set-email" name="set-email" required class="form-control"/><br>                                                   
+                        </div>
+                        <div class="form-group">
+			  		      <label class="control-label">Telefone</label>
+                          <input type="text" id="set-fone" name="set-fone" required class="form-control"/><br>                                                                                       
+			  		    </div>  						  
+                      </div>                                              
+                    </div>   				  
+				    <div class="modal-footer">
+                      <input type="submit" value="Cadastrar" class="btn btn-success"/>
+			  		  <a href="#" class="btn btn-default" data-dismiss="modal">Cancelar</a>
+                    </div>					
+				  </form>
+                </div>          
+		      </div>	
+            </div>
+            <div id="contact-get-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel">			
+			  <div class="modal-dialog">
+                <div class="modal-content">
+                  <div class="modal-header">    
+                    <h4>Editar <label class="get-contact-head"></label></h4>				  
+                  </div>
+				  <form method="get" id="get_contact_form">
+                    <div class="modal-body">                    
+                      <div class="modal-body">                            
+                        <div class="form-group">
+			  		      <label class="control-label">Nome</label>
+                          <input type="text" id="get-name" name="get-name" required class="form-control"/><br>                                                   
+                        </div>
+                        <div class="form-group">
+                          <label class="control-label">Email</label>
+                          <input type="text" id="get-email" name="get-email" required class="form-control"/><br>                                                   
+                        </div>
+                        <div class="form-group">
+			  		      <label class="control-label">Telefone</label>
+                          <input type="text" id="get-fone" name="get-fone" required class="form-control"/><br>                                                                                       
+			  		    </div>  						  
+						<input type="hidden" id="get-id" name="get-id"/>
+                      </div>                                              
+                    </div>   				  
+				    <div class="modal-footer">
+                      <input type="submit" value="Atualizar" class="btn btn-success"/>
+			  		  <a href="#" class="btn btn-default" data-dismiss="modal">Cancelar</a>
+                    </div>					
+				  </form>                    				
+                </div>          
+		      </div>	
+            </div>			
+		</div>     
+	</div>	
+  </div>	
+
+</body>
+</html>
+
+
