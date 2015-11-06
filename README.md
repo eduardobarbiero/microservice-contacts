@@ -1,5 +1,5 @@
 # MicroService Contatos
-Micro Service criado em Elixir e Phoenix para consumo por uma página estática HTML/Jquery. Atividade para apresentação na disciplina de Programação IV na instituição Católica de Santa Catarina - Joinville.
+Criado em Elixir e Phoenix para consumo por uma página estática HTML/Jquery. Atividade para apresentação na disciplina de Programação IV na instituição Católica de Santa Catarina - Joinville.
 
 
 Elixir 1.1.1
